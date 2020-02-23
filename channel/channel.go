@@ -7,7 +7,11 @@ import (
 
 func worker(id int, c chan int) {
 	for {
-		fmt.Printf("Worker %d received %d\n", id, <-c)
+		n, ok := <-c // 判斷是否已經關閉了, !ok 代表已關閉, 若為ok則n會儲存channel的值
+		if !ok {
+			break
+		}
+		fmt.Printf("Worker %d received %d\n", id, n)
 	}
 }
 func createWorker(id int) chan<- int { // 加一個 <- 代表只能傳資料給chan
