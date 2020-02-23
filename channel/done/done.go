@@ -6,25 +6,27 @@ import (
 )
 
 //列印完就往外傳一個 done = true
-func doWork(id int, c chan int, wg *sync.WaitGroup) {
+func doWork(id int, c chan int, w worker) {
 	for n := range c {
 		fmt.Printf("Worker %d received %c\n", id, n)
-		wg.Done()
+		w.done()
 	}
 }
 
 type worker struct {
-	in chan int
-	wg *sync.WaitGroup
+	in   chan int
+	done func()
 }
 
+// 原本讓doWork決定done要做什麼，改讓createWork做決定。
+// 而doWork就只是把事情做完了，就讓worker done()，讓done這件事情抽象化。
 func createWorker(id int, wg *sync.WaitGroup) worker {
 	w := worker{
-		in: make(chan int),
-		wg: wg,
+		in:   make(chan int),
+		done: func() { wg.Done() }, // 這裡要用func(){} 包起來，決定這個done裡面到底做什麼。
 	}
 
-	go doWork(id, w.in, wg)
+	go doWork(id, w.in, w)
 	return w
 }
 
