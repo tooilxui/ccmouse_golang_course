@@ -16,9 +16,9 @@ func createWorker(id int) chan<- int { // 加一個 <- 代表只能傳資料給c
 	return c
 }
 
-// DeadLockChanDemo
+// chanDemo
 // channel 是拿來給 goroutine 間溝通的，必須透過 goroutine 收/放，否則會deadlock
-func DeadLockChanDemo() {
+func chanDemo() {
 	var channels [10]chan<- int
 	for i := 0; i < 10; i++ {
 		channels[i] = createWorker(i)
@@ -58,7 +58,16 @@ func channelClose() {
 	time.Sleep(time.Millisecond)
 }
 func main() {
-	//DeadLockChanDemo()
-	//bufferedChannel()
+	// channel as first-class citizen
+	chanDemo()
+	// buffered channel
+	bufferedChannel()
+	// channel close and range
 	channelClose()
 }
+
+// summary
+// golang 併發的設計理論基礎是參考 Communication Sequential Process (CSP) 模型
+//
+// Don't communicate by sharing memory; share memory by communicating
+// 不要透過共享內存來通信；透過通信來共享內存
