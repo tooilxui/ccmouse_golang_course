@@ -6,11 +6,7 @@ import (
 )
 
 func worker(id int, c chan int) {
-	for {
-		n, ok := <-c // 判斷是否已經關閉了, !ok 代表已關閉, 若為ok則n會儲存channel的值
-		if !ok {
-			break
-		}
+	for n := range c {
 		fmt.Printf("Worker %d received %d\n", id, n)
 	}
 }
