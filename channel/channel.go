@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func createWorker(id int) chan int {
+func createWorker(id int) chan<- int { // 加一個 <- 代表只能傳資料給chan
 	c := make(chan int)
 	go func() {
 		for {
@@ -18,7 +18,7 @@ func createWorker(id int) chan int {
 // DeadLockChanDemo
 // channel 是拿來給 goroutine 間溝通的，必須透過 goroutine 收/放，否則會deadlock
 func DeadLockChanDemo() {
-	var channels [10]chan int
+	var channels [10]chan<- int
 	for i := 0; i < 10; i++ {
 		channels[i] = createWorker(i)
 	}
