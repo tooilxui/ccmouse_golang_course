@@ -44,7 +44,21 @@ func bufferedChannel() {
 	c <- 'd' // size=3 傳入4個? 只要取的速度夠快，保持不要超過size都可以運行
 	time.Sleep(time.Millisecond)
 }
+
+// channel close後, goroutine的無限迴圈仍然持續向channel要數據,
+// 但因為已經close了所以只能收到空數據, int default 0
+func channelClose() {
+	c := make(chan int)
+	go worker(0, c)
+	c <- 'a'
+	c <- 'b'
+	c <- 'c'
+	c <- 'd'
+	close(c)
+	time.Sleep(time.Millisecond)
+}
 func main() {
 	//DeadLockChanDemo()
-	bufferedChannel()
+	//bufferedChannel()
+	channelClose()
 }
