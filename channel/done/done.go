@@ -8,7 +8,9 @@ import (
 func doWork(id int, c chan int, done chan bool) {
 	for n := range c {
 		fmt.Printf("Worker %d received %c\n", id, n)
-		done <- true
+		// 追加一個goroutine來丟done，這樣就不用等人拿走done才能往done放東西了
+		// 因為每個goroutine都是獨立的
+		go func() { done <- true }()
 	}
 }
 
