@@ -2,51 +2,47 @@ package main
 
 import (
 	"fmt"
+	"sync"
 )
 
 //列印完就往外傳一個 done = true
-func doWork(id int, c chan int, done chan bool) {
+func doWork(id int, c chan int, wg *sync.WaitGroup) {
 	for n := range c {
 		fmt.Printf("Worker %d received %c\n", id, n)
-		done <- true
+		wg.Done()
 	}
 }
 
 type worker struct {
-	in   chan int
-	done chan bool
+	in chan int
+	wg *sync.WaitGroup
 }
 
-func createWorker(id int) worker {
+func createWorker(id int, wg *sync.WaitGroup) worker {
 	w := worker{
-		in:   make(chan int),
-		done: make(chan bool),
+		in: make(chan int),
+		wg: wg,
 	}
 
-	go doWork(id, w.in, w.done)
+	go doWork(id, w.in, wg)
 	return w
 }
 
 func chanDemo() {
+	var wg sync.WaitGroup
+	wg.Add(20)
+
 	var workers [10]worker
 	for i := 0; i < 10; i++ {
-		workers[i] = createWorker(i)
+		workers[i] = createWorker(i, &wg)
 	}
-	for i := 0; i < 10; i++ {
-		workers[i].in <- 'a' + 1
-	}
-	// 分兩個迴圈放跟取也可以，這樣比較單純 (doWork就不用開goroutine了)
 	for _, worker := range workers {
-		<-worker.done
+		worker.in <- 'a' + 1
 	}
-
-	for i := 0; i < 10; i++ {
-		workers[i].in <- 'A' + 1
-	}
-	// 分兩個迴圈放跟取也可以，這樣比較單純 (doWork就不用開goroutine了)
 	for _, worker := range workers {
-		<-worker.done
+		worker.in <- 'A' + 1
 	}
+	wg.Wait()
 }
 
 func main() {
