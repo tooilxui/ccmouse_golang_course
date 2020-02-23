@@ -35,13 +35,23 @@ func chanDemo() {
 	//// 這個寫法會導致兩個迴圈會依序print
 	for i := 0; i < 10; i++ {
 		workers[i].in <- 'a' + 1
-		// 從done收到東西才往下做
-		<-workers[i].done
 	}
 	for i := 0; i < 10; i++ {
 		workers[i].in <- 'A' + 1
-		// 從done收到東西才往下做
-		<-workers[i].done
+	}
+
+	// wait for all of them
+	// 上面每個worker都會跑兩次for來丟資料, 所以每個都要收兩次
+	// 但這個寫法會deadlock
+	// why ?
+	// createWorker會創造goroutine，不斷的等資料傳入，以觸發doWork
+	// 當第一個for迴圈丟完資料時，每個doWork會往done丟true，但直到下面這個for才有人收done，
+	//
+	// 而golang channel是阻塞式的，沒有人收done，而第二個for迴圈又開始往同一個work丟資料，
+	// 就會觸發doWork，而往done再次丟資料，導致阻塞。
+	for _, worker := range workers {
+		<-worker.done
+		<-worker.done
 	}
 }
 
